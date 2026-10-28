@@ -7,15 +7,24 @@ from fastapi import FastAPI
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.institution.infrastructure.config.application_configuration import (
+from src.education.clean.presentation.dependency.education_dependencies import (
+    configure_education_service,
+)
+from src.education.clean.presentation.exception.education_exception_handlers import (
+    register_education_handlers,
+)
+from src.education.clean.presentation.router.education_router import router as education_router
+from src.institution.hexagonal.infrastructure.config.application_configuration import (
     configure_institution_service,
 )
-from src.institution.infrastructure.config.database_configuration import configure_database
-from src.institution.infrastructure.config.settings import Settings
-from src.institution.infrastructure.input.adapter.rest.exception_handlers import (
+from src.institution.hexagonal.infrastructure.input.adapter.rest.exception_handlers import (
     register_exception_handlers,
 )
-from src.institution.infrastructure.input.adapter.rest.institution_controller import router
+from src.institution.hexagonal.infrastructure.input.adapter.rest.institution_controller import (
+    router,
+)
+from src.shared.config.database_configuration import configure_database
+from src.shared.config.settings import Settings
 
 
 def create_app(session_factory: sessionmaker[Session] | None = None) -> FastAPI:
@@ -31,10 +40,13 @@ def create_app(session_factory: sessionmaker[Session] | None = None) -> FastAPI:
             if engine is not None:
                 engine.dispose()
 
-    application = FastAPI(title="Institution API", version="1.0.0", lifespan=lifespan)
+    application = FastAPI(title="Institution and Education API", version="1.1.0", lifespan=lifespan)
     application.state.institution_service = configure_institution_service(session_factory)
+    application.state.education_service = configure_education_service(session_factory)
     register_exception_handlers(application)
+    register_education_handlers(application)
     application.include_router(router)
+    application.include_router(education_router)
     return application
 
 

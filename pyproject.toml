@@ -1,6 +1,7 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra"
+addopts = "-ra --import-mode=importlib"
+pythonpath = ["."]
 markers = ["postgresql: integration test using an isolated PostgreSQL schema"]
 
 [tool.ruff]

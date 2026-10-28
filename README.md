@@ -1,50 +1,17 @@
-# CRUD de instituciones con FastAPI
+# CRUD de instituciones y educación con FastAPI
 
-API para la tabla PostgreSQL `institution`, con Python **3.14.7**, borrado lógico
-y control optimista de versiones. La arquitectura reproduce la separación de
-capas y puertos del proyecto Spring Boot examinado en
-`HUS/src/main/java/com/pichincha/cigmsaspkagj`.
+Dos funcionalidades con arquitecturas distintas en una API compatible con
+**Python 3.14.7**:
 
-El análisis de esa referencia está en [ARCHITECTURE.md](ARCHITECTURE.md).
-El código y los mensajes de la API están en inglés; los comentarios explicativos
-y esta documentación están en español.
+- `src/institution/hexagonal`: instituciones con puertos y adaptadores.
+- `src/education/clean`: educación con dominio, aplicación, infraestructura y presentación.
 
-## Organización del código y las pruebas
+Ambas usan PostgreSQL, borrado lógico y control optimista de versiones.
+Los detalles de las capas están en [ARCHITECTURE.md](ARCHITECTURE.md).
+Los comentarios y la documentación están en español; los identificadores y los
+mensajes de la API están en inglés.
 
-`src/` es el paquete raíz de la aplicación. La funcionalidad de instituciones
-se agrupa en `src/institution/`, con sus propias capas hexagonales. Sus pruebas
-reflejan las mismas rutas bajo `tests/institution/`:
-
-```text
-src/
-  main.py
-  institution/
-    domain/model/institution.py
-    application/service/institution_service_impl.py
-    application/port/input/institution_service.py
-    application/port/output/institution_persistence_port.py
-    infrastructure/config/settings.py
-    infrastructure/input/adapter/rest/institution_controller.py
-    infrastructure/output/adapter/repository/institution_persistence_adapter.py
-
-tests/
-  conftest.py
-  architecture/test_architecture.py
-  institution/
-    domain/model/test_institution.py
-    application/service/test_institution_service_impl.py
-    infrastructure/config/test_settings.py
-    infrastructure/input/adapter/rest/test_institution_controller.py
-    infrastructure/input/adapter/rest/test_exception_handlers.py
-    infrastructure/output/adapter/repository/test_institution_persistence_adapter.py
-```
-
-Las verificaciones que afectan a todas las capas están en `tests/architecture/`.
-Las fixtures compartidas permanecen en `tests/conftest.py`. No hace falta crear
-una prueba vacía por cada `__init__.py` o interfaz.
-`src/main.py` mantiene el arranque general y registra los componentes de la funcionalidad.
-
-## Preparar el entorno
+## Instalación y arranque
 
 Desde la raíz del repositorio:
 
@@ -54,18 +21,16 @@ py -3.14 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Comprueba que el intérprete muestre `Python 3.14.7`. Si `.venv` ya existe con esa
-versión, puedes ejecutar directamente el comando de instalación.
-
-La configuración se lee de las variables de entorno o del archivo `.env` de la
-carpeta actual. Las variables del sistema tienen prioridad sobre `.env`.
-En una copia nueva del repositorio, crea el archivo a partir del ejemplo:
+Comprueba que el intérprete muestre `Python 3.14.7`. Si el entorno ya existe con
+esa versión, puedes omitir su creación. En una copia nueva del repositorio,
+prepara las variables locales:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Edita `.env` con tus valores locales:
+Edita `.env` con tus credenciales. En este equipo ya está configurado con los
+valores proporcionados. Se conserva la configuración original:
 
 ```dotenv
 DB_URL=jdbc:postgresql://localhost:5432/portfolio_db
@@ -74,41 +39,99 @@ DB_PASSWORD=your-local-password
 DB_DRIVER=org.postgresql.Driver
 ```
 
-En este equipo ya se creó `.env` con los valores proporcionados. No se sube a Git.
-La aplicación admite la URL JDBC para conservar los nombres de configuración,
-pero la convierte a una URL `postgresql+psycopg` para Python. No utiliza el driver Java.
+Las variables del sistema tienen prioridad sobre `.env`. La URL JDBC se adapta
+a `postgresql+psycopg`; no se necesita el driver Java. `.env` está excluido de Git.
 
-## Levantar la API
+Levanta PostgreSQL y después ejecuta:
 
 ```powershell
 .\.venv\Scripts\python.exe -m uvicorn src.main:app --reload
 ```
 
-- Documentación interactiva: <http://127.0.0.1:8000/docs>
-- Esquema OpenAPI: <http://127.0.0.1:8000/openapi.json>
-- Documentación alternativa: <http://127.0.0.1:8000/redoc>
+Abre **http://127.0.0.1:8000/docs** para probar ambos CRUD. También están disponibles
+`/redoc` y `/openapi.json`. Mantén la terminal abierta y usa `Ctrl+C` para detener
+el servidor. La documentación puede abrirse sin conexión a PostgreSQL; los CRUD
+requieren una conexión válida.
 
-Mantén abierta la terminal mientras usas la API. Detén el servidor con `Ctrl+C`.
-Ejecuta el comando desde la raíz del repositorio para que Python encuentre `src`.
-La documentación puede abrirse sin conexión a PostgreSQL; las operaciones CRUD sí
-requieren que la base de datos esté disponible.
+## Estructura
 
-## Endpoints
+```text
+src/
+  main.py
+  institution/
+    hexagonal/
+      domain/
+      application/
+      infrastructure/
+  education/
+    clean/
+      domain/
+        model/education.py
+        exception/education_errors.py
+      application/
+        port/education_repository.py
+        port/institution_lookup.py
+        port/unit_of_work.py
+        service/education_service.py
+      infrastructure/
+        model/education_model.py
+        mapper/education_persistence_mapper.py
+        repository/education_repository.py
+        gateway/institution_lookup.py
+        unit_of_work/sqlalchemy_unit_of_work.py
+      presentation/
+        schema/education_schema.py
+        mapper/education_rest_mapper.py
+        dependency/education_dependencies.py
+        exception/education_exception_handlers.py
+        router/education_router.py
+  shared/
+    config/
+    persistence/
 
-| Método | Ruta | Resultado |
+tests/
+  conftest.py
+  architecture/
+  institution/hexagonal/...
+  education/clean/...
+  shared/...
+
+migrations/
+  env.py
+  script.py.mako
+  versions/0001_initial_schema.py
+
+alembic.ini
+```
+
+Las pruebas de cada componente reflejan su ruta en `src`. Las fixtures comunes
+quedan en `tests/conftest.py`; las reglas entre capas, en `tests/architecture/`.
+La configuración de conexión y los metadatos SQL compartidos son detalles técnicos,
+no modelos de negocio compartidos entre las dos funcionalidades.
+
+Cada componente tiene su carpeta y su archivo Python. Por ejemplo,
+`src/education/clean/domain/model/education.py` tiene su prueba en
+`tests/education/clean/domain/model/test_education.py`. Las pruebas del servicio,
+repositorio, unidad de trabajo, esquemas y rutas siguen la misma correspondencia.
+
+En educación, el servicio abre una unidad de trabajo por operación. La consulta de
+la institución y las escrituras comparten sesión y transacción; los repositorios
+no hacen commit. El caso de uso confirma cuando termina correctamente y, si hay
+un error o falta la confirmación, se revierte la transacción.
+
+## Instituciones: arquitectura hexagonal
+
+Base: **http://127.0.0.1:8000/api/v1/institutions**
+
+| Método | Ruta | Operación |
 | --- | --- | --- |
-| POST | `/api/v1/institutions` | Crea una institución y devuelve `201`, ID y versión inicial `0`. |
-| GET | `/api/v1/institutions?offset=0&limit=20` | Lista únicamente instituciones activas. |
-| GET | `/api/v1/institutions/{institution_id}` | Consulta una institución activa. |
-| PUT | `/api/v1/institutions/{institution_id}` | Reemplaza los datos editables y compara la versión enviada. |
-| DELETE | `/api/v1/institutions/{institution_id}?version=0` | Marca la institución como eliminada e incrementa su versión; devuelve `204`. |
+| POST | `/api/v1/institutions` | Crear; responde `201` con versión inicial `0`. |
+| GET | `/api/v1/institutions?offset=0&limit=20` | Listar activas. |
+| GET | `/api/v1/institutions/{institution_id}` | Consultar una activa. |
+| PUT | `/api/v1/institutions/{institution_id}` | Reemplazar datos editables enviando `version`. |
+| DELETE | `/api/v1/institutions/{institution_id}?version=0` | Borrado lógico; responde `204`. |
 
-La paginación admite `offset >= 0` y `limit` entre `1` y `100`. Los identificadores
-deben ser positivos.
-
-### Crear
-
-En Swagger selecciona `POST`, pulsa **Try it out** y envía:
+Ejemplo de creación:
 
 ```json
 {
@@ -118,80 +141,107 @@ En Swagger selecciona `POST`, pulsa **Try it out** y envía:
 }
 ```
 
-Respuesta de ejemplo:
+El nombre es obligatorio y admite hasta 255 caracteres; el nombre en español es
+opcional, con el mismo límite. La URL es texto opcional de hasta 2048 caracteres.
+La respuesta incluye `institutionId`, `institutionDeleted` y `version`.
+
+## Educación: Clean Architecture
+
+Base: **http://127.0.0.1:8000/api/v1/educations**
+
+| Método | Ruta | Operación |
+| --- | --- | --- |
+| POST | `/api/v1/educations` | Crear asociando una institución activa. |
+| GET | `/api/v1/educations?offset=0&limit=20` | Listar registros no eliminados, por posición e ID. |
+| GET | `/api/v1/educations/{education_id}` | Consultar uno no eliminado. |
+| PUT | `/api/v1/educations/{education_id}` | Reemplazar datos editables enviando `version`. |
+| DELETE | `/api/v1/educations/{education_id}?version=0` | Borrado lógico; responde `204`. |
+
+Crea una institución primero y utiliza el ID devuelto; `1` es solo ilustrativo:
 
 ```json
 {
+  "educationTitle": "Software Engineering",
+  "educationTitleEs": "Ingeniería de software",
+  "educationPlace": "Quito",
+  "educationStart": "September 2020",
+  "educationStartEs": "Septiembre 2020",
+  "educationEnd": "Present",
+  "educationEndEs": "Actualidad",
+  "educationPosition": 1,
+  "educationVisible": true,
+  "institutionId": 1
+}
+```
+
+Título, lugar, fin, posición e institución son obligatorios. Todos los campos de
+texto admiten hasta 255 caracteres. Inicio y fin se mantienen como **texto**, igual
+que los `String` de Java: no se convierten en fechas. La posición admite el rango
+de un `int` de Java, incluidos valores negativos. La visibilidad es `true` por defecto.
+La respuesta añade `educationId`, `educationDeleted` y `version`.
+
+Puedes filtrar el listado:
+
+```text
+GET /api/v1/educations?institutionId=1
+GET /api/v1/educations?visible=true
+GET /api/v1/educations?institutionId=1&visible=false&offset=0&limit=20
+```
+
+Sin `visible`, se devuelven tanto registros visibles como ocultos. Ocultar un
+registro no lo elimina. Crear o actualizar requiere una institución activa; un ID
+inexistente o eliminado devuelve `404`.
+
+El borrado lógico de una institución no elimina en cascada las educaciones ya
+registradas. Se conserva su relación histórica y pueden consultarse o eliminarse.
+Para actualizarlas debes asociarlas a una institución activa.
+
+## Versiones, actualizaciones y errores
+
+Los dos CRUD generan ID, estado de borrado y versión inicial `0` en el servidor.
+Estos campos no se aceptan en POST. Para PUT, envía los campos editables completos
+y agrega la versión obtenida en la última consulta:
+
+```json
+{
+  "educationTitle": "Updated degree",
+  "educationPlace": "Quito",
+  "educationEnd": "Present",
+  "educationPosition": 1,
+  "educationVisible": false,
   "institutionId": 1,
-  "institutionName": "Example University",
-  "institutionNameEs": "Universidad de ejemplo",
-  "institutionUrl": "https://example.edu",
-  "institutionDeleted": false,
   "version": 0
 }
 ```
 
-El ID del ejemplo es ilustrativo. La API genera el ID y no permite enviar
-`institutionId`, `institutionDeleted` ni `version` durante la creación.
+La respuesta tendrá `version: 1`. Los campos opcionales omitidos quedan en `null`;
+la visibilidad omitida vuelve a `true`. En instituciones, PUT sigue el mismo
+contrato de reemplazo de sus datos editables.
 
-### Actualizar
-
-Consulta primero la institución y envía su versión actual en el cuerpo de `PUT`:
-
-```json
-{
-  "institutionName": "Updated University",
-  "institutionNameEs": null,
-  "institutionUrl": "https://example.edu",
-  "version": 0
-}
-```
-
-La respuesta tendrá `version: 1`. PUT reemplaza los campos editables: los campos
-opcionales omitidos quedan en `null`. El nombre es obligatorio, no puede estar
-vacío y admite hasta 255 caracteres; el nombre en español es opcional con el mismo
-límite; la URL es texto opcional de hasta 2048 caracteres, igual que en la entidad Java.
-
-### Eliminar
-
-Si la versión actual es `1`, usa:
+Para eliminar, envía la versión actual en la URL. Si es `1`:
 
 ```text
-DELETE /api/v1/institutions/1?version=1
+DELETE /api/v1/educations/1?version=1
 ```
 
-No se ejecuta un DELETE físico. La fila permanece con `institution_deleted=true`
-y `version=2`. Después deja de aparecer en GET y no se puede actualizar por esta API.
+La fila queda con `education_deleted=true` y `version=2`; deja de aparecer en GET
+y no puede actualizarse por la API. El ID es ilustrativo.
 
-### Respuestas de error
+- `404`: registro inexistente/eliminado o institución relacionada no activa.
+- `409`: versión obsoleta o conflicto con una restricción de persistencia.
+- `422`: datos inválidos, campos no permitidos o versión requerida ausente.
+- `503`: fallo técnico de persistencia, sin exponer SQL ni credenciales.
 
-- `404`: institución inexistente o eliminada.
-- `409`: versión obsoleta o conflicto con una restricción de base de datos.
-- `422`: solicitud inválida, campos no permitidos o versión requerida ausente.
-- `503`: fallo técnico de persistencia; no se exponen detalles SQL ni credenciales.
+Ante un conflicto de versión, consulta el registro antes de decidir si reenvías
+el cambio. La comparación y el incremento de versión ocurren en una misma
+sentencia SQL. Ambos listados admiten `offset >= 0` y `limit` entre `1` y `100`.
 
-Ante un `409` de versión, vuelve a consultar el registro antes de decidir si
-reenvías tu cambio. Tanto PUT como DELETE comparan e incrementan la versión dentro
-de una misma sentencia SQL para evitar actualizaciones perdidas.
+## Base de datos y pruebas
 
-## Base de datos
-
-La aplicación usa la tabla existente y **no crea ni altera tablas al arrancar**.
-Se confirmó que la tabla local tiene estas columnas:
-
-```text
-institution_id       BIGINT, clave primaria autogenerada
-institution_name     VARCHAR(255), obligatorio
-institution_name_es  VARCHAR(255), opcional
-institution_url      VARCHAR(2048), opcional
-institution_deleted  BOOLEAN, obligatorio
-version              BIGINT, obligatorio
-```
-
-Para una base nueva, [database/schema.sql](database/schema.sql) contiene el esquema
-de referencia. Su ejecución es manual; no hace falta aplicarlo a la tabla existente.
-
-## Pruebas
+La aplicación **no crea ni altera tablas al arrancar**. Se confirmó que las tablas
+locales `institution` y `education` coinciden con las entidades proporcionadas,
+incluida la clave foránea `education.institution_id`.
+[database/schema.sql](database/schema.sql) es una referencia manual para una base nueva.
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
@@ -200,8 +250,8 @@ de referencia. Su ejecución es manual; no hace falta aplicarlo a la tabla exist
 .\.venv\Scripts\python.exe -m ruff format --check .
 ```
 
-Por defecto se utiliza SQLite temporal para las pruebas del CRUD. Para verificar
-también el mismo flujo en PostgreSQL:
+Las pruebas de integración utilizan SQLite temporal por defecto, con las claves
+foráneas habilitadas. Para ejecutar también el mismo flujo en PostgreSQL:
 
 ```powershell
 $env:RUN_POSTGRES_TESTS = "1"
@@ -209,7 +259,48 @@ $env:RUN_POSTGRES_TESTS = "1"
 Remove-Item Env:RUN_POSTGRES_TESTS
 ```
 
-Cada prueba PostgreSQL crea un esquema con nombre aleatorio y lo elimina al terminar.
-Se requiere permiso para crear esquemas. Las pruebas no escriben en `public.institution`.
-Se verifican CRUD, validaciones, filas eliminadas, concurrencia, errores técnicos y
-fronteras arquitectónicas.
+Cada prueba PostgreSQL crea un esquema aleatorio y lo elimina al terminar. Se
+requiere permiso para crear esquemas; las pruebas no escriben en las tablas
+públicas existentes. Se verifican ambos CRUD, relaciones, filtros, concurrencia,
+validación, persistencia y fronteras arquitectónicas.
+
+## Migraciones con Alembic
+
+Alembic está incluido en `requirements.txt`. Si tu entorno ya estaba instalado,
+actualízalo con `python -m pip install -r requirements.txt` usando el intérprete
+de `.venv` mostrado arriba.
+
+La revisión `0001` crea las tablas de referencia en una **base nueva**:
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic upgrade head
+```
+
+En tu base actual las tablas ya existen: no se debe ejecutar esa creación inicial
+sobre ellas. Después de revisar la correspondencia del esquema, puedes registrar
+la línea base sin recrear las tablas y comprobar diferencias:
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic stamp 0001
+.\.venv\Scripts\python.exe -m alembic check
+```
+
+`stamp` registra la revisión en `alembic_version`; no aplica el DDL de `0001`.
+El proyecto no ejecuta estos comandos automáticamente. Durante la implementación
+solo se probaron migraciones en bases temporales y esquemas PostgreSQL aislados.
+
+La configuración de autogeneración se limita a las tablas de ambas funcionalidades
+y conserva índices y restricciones existentes que no estén declarados en los
+modelos. Se detectaron índices adicionales en la base actual: no se eliminan ni
+se incluyen automáticamente en la revisión mínima para bases nuevas.
+
+Para preparar una modificación futura del esquema:
+
+```powershell
+.\.venv\Scripts\python.exe -m alembic revision --autogenerate -m "Describe schema change"
+```
+
+Revisa el archivo generado antes de aplicar `upgrade head`. La revisión inicial
+también tiene un `downgrade` que elimina sus tablas; no es un comando de arranque.
+Las pruebas de migraciones están en `tests/migrations/` y comprueban creación,
+reversión y adopción de tablas existentes sin pérdida de registros ni índices.
