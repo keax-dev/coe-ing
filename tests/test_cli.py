@@ -1,4 +1,4 @@
-# Probamos los comandos como los usa la terminal y verificamos sus efectos persistentes.
+# Tema: pruebas de comandos y efectos persistentes.
 
 from pathlib import Path
 
@@ -10,6 +10,7 @@ from expense_tracker.repositories import SQLiteExpenseRepository
 
 
 def test_add_summary_export_and_import(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    # Ejecutamos el flujo completo y comprobamos tanto la salida como la persistencia.
     database = tmp_path / "first.db"
     prefix = ["--database", str(database)]
     assert main([*prefix, "add", "Lunch", "12.50", "--category", "food"]) == 0
@@ -35,6 +36,7 @@ def test_storage_failure_returns_error(
     def unavailable(path: Path) -> SQLiteExpenseRepository:
         raise StorageError("Database unavailable")
 
+    # Sustituimos temporalmente el repositorio para provocar un fallo controlado de almacenamiento.
     monkeypatch.setattr("expense_tracker.cli.SQLiteExpenseRepository", unavailable)
     assert main(["--database", str(tmp_path / "expenses.db"), "list"]) == 1
     assert "Database unavailable" in capsys.readouterr().out

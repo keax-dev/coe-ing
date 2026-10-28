@@ -1,3 +1,3 @@
-# El paquete comparte modelos y operaciones entre las lecciones, la terminal y las pruebas.
+# Tema: inicialización del paquete y versión de la aplicación.
 
 __version__ = "0.2.0"

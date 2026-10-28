@@ -5,7 +5,8 @@ condicionales, bucles, entrada/salida y funciones sencillas. El proyecto evoluci
 hasta una aplicación de terminal con modelos, cálculos monetarios exactos,
 persistencia SQLite, validación externa y pruebas automatizadas.
 
-Cada lección tiene una explicación inicial y comentarios en español. Los archivos,
+Cada archivo Python comienza con una sola línea que indica el tema. Las explicaciones
+en español aparecen junto al código que describen. Los archivos,
 identificadores y mensajes del programa están en inglés. Las lecciones están en la
 raíz de esta rama, sin una carpeta adicional que las contenga.
 
@@ -180,7 +181,7 @@ que las pruebas de ejecución se invoquen a sí mismas.
 
 ## Forma de estudio
 
-1. Lee la explicación inicial y predice el resultado antes de ejecutar el archivo.
+1. Lee el tema y los comentarios del código; predice el resultado antes de ejecutar el archivo.
 2. Sigue el flujo desde la lección hasta los módulos que importa.
 3. Cambia los datos o una regla y observa qué resultados y pruebas se ven afectados.
 4. Explica las decisiones: mutabilidad, responsabilidades, contratos y manejo de fallos.

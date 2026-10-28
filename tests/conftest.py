@@ -1,4 +1,4 @@
-# Las fixtures proporcionan datos nuevos a cada prueba para evitar estado compartido.
+# Tema: fixtures compartidas y aislamiento entre pruebas.
 
 import pytest
 
@@ -8,4 +8,5 @@ from expense_tracker.sample_data import sample_expenses
 
 @pytest.fixture
 def expenses() -> list[Expense]:
+    # La fixture se resuelve de nuevo en cada prueba para evitar datos mutables compartidos.
     return sample_expenses()

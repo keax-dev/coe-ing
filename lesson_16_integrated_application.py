@@ -1,8 +1,4 @@
 # Tema: integración de modelos, servicios, repositorio y comandos de terminal.
-# Esta demostración usa la misma interfaz que expense-tracker y python -m expense_tracker.
-# Creamos gastos, consultamos resúmenes y exportamos registros en una base temporal.
-# Los errores de validación se traducen en códigos de salida sin guardar datos inválidos.
-# Ejecuta: .\.venv\Scripts\python.exe lesson_16_integrated_application.py
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -11,6 +7,7 @@ from expense_tracker.cli import main as run_command
 
 
 def main() -> None:
+    # Usamos la misma interfaz que la terminal, con una base y una exportación temporales.
     with TemporaryDirectory() as directory:
         database = Path(directory) / "expenses.db"
         export_path = Path(directory) / "expenses.json"
@@ -25,6 +22,7 @@ def main() -> None:
         ]
         for command in commands:
             print("\nCommand:", " ".join(command))
+            # Un código cero indica éxito; la entrada inválida devuelve uno sin persistir el gasto.
             print("Exit code:", run_command([*prefix, *command]))
         print("Export exists:", export_path.exists())
 

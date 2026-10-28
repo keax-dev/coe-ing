@@ -1,4 +1,4 @@
-# Simulamos HTTP y validamos datos externos sin realizar llamadas de red.
+# Tema: pruebas HTTP y validación de respuestas.
 
 import asyncio
 from decimal import Decimal
@@ -11,6 +11,7 @@ from expense_tracker.rates import ExchangeRates, fetch_rates, fetch_rates_async
 
 
 def test_valid_http_response() -> None:
+    # MockTransport sustituye la red, pero mantiene el flujo de solicitud y validación real.
     transport = httpx.MockTransport(
         lambda request: httpx.Response(200, json={"base": "USD", "rates": {"EUR": "0.92"}})
     )
@@ -50,6 +51,7 @@ def test_network_timeout_is_propagated() -> None:
         raise httpx.ReadTimeout("Timed out", request=request)
 
     with httpx.Client(transport=httpx.MockTransport(timeout)) as client:
+        # El consumidor debe poder distinguir un timeout de una respuesta con datos inválidos.
         with pytest.raises(httpx.ReadTimeout):
             fetch_rates(client, "https://rates.example.test/latest")
 

@@ -1,9 +1,4 @@
 # Tema: consumo de APIs, códigos HTTP, timeouts y validación con Pydantic.
-# Inyectamos el cliente para ejecutar el flujo HTTP completo con respuestas simuladas.
-# El modo normal no necesita internet y muestra datos válidos, inválidos y un fallo HTTP.
-# --url permite consultar un endpoint real que devuelva el mismo contrato de datos.
-# Contrato esperado: {"base": "USD", "rates": {"EUR": "0.92"}}
-# Ejecuta: .\.venv\Scripts\python.exe lesson_13_http_and_validation.py
 
 import argparse
 from decimal import ROUND_HALF_UP, Decimal
@@ -15,6 +10,7 @@ from expense_tracker.rates import fetch_rates
 
 
 def mock_response(request: httpx.Request) -> httpx.Response:
+    # El transporte simula respuestas HTTP distintas según la ruta solicitada.
     if request.url.path == "/invalid":
         return httpx.Response(200, json={"base": "USD", "rates": {"EUR": "-1"}})
     if request.url.path == "/unavailable":
@@ -26,6 +22,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Validate an exchange-rate API response.")
     parser.add_argument("--url", help="Optional live endpoint matching the documented contract")
     args = parser.parse_args()
+    # Solo se consulta la red si el usuario proporciona --url con un endpoint real.
+    # El contrato esperado es {"base": "USD", "rates": {"EUR": "0.92"}}.
     transport = None if args.url else httpx.MockTransport(mock_response)
     urls = (
         [args.url]
@@ -37,9 +35,11 @@ def main() -> None:
         ]
     )
     with httpx.Client(transport=transport, timeout=5.0) as client:
+        # El contexto cierra el cliente; timeout limita la espera de las operaciones de red.
         for url in urls:
             try:
                 quote = fetch_rates(client, url)
+                # fetch_rates verifica el estado HTTP y valida el contenido con Pydantic.
                 print("Validated quote:", quote.model_dump())
                 if quote.base == "USD" and "EUR" in quote.rates:
                     converted = (Decimal("12.50") * quote.rates["EUR"]).quantize(
@@ -47,6 +47,7 @@ def main() -> None:
                     )
                     print("Converted sample amount in EUR:", converted)
             except httpx.HTTPStatusError as error:
+                # Una respuesta de error, un fallo de conexión y datos inválidos son casos diferentes.
                 print("HTTP error:", error.response.status_code)
             except httpx.RequestError as error:
                 print("Network error:", error)

@@ -1,5 +1,6 @@
-# Este punto de entrada permite ejecutar el paquete con python -m expense_tracker.
+# Tema: ejecución del paquete desde la terminal.
 
 from expense_tracker.cli import main
 
+# SystemExit entrega a la terminal el código de éxito o error que devuelve la interfaz.
 raise SystemExit(main())

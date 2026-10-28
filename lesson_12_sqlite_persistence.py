@@ -1,9 +1,4 @@
 # Tema: repositorios, SQL parametrizado, CRUD y transacciones.
-# La persistencia queda detrás de una interfaz y no se mezcla con los cálculos.
-# Los valores se pasan como parámetros SQL, nunca se concatenan dentro de una consulta.
-# Si falla un registro de una transacción, sqlite revierte todos sus cambios.
-# La base de datos temporal permite repetir esta demostración sin borrar datos personales.
-# Ejecuta: .\.venv\Scripts\python.exe lesson_12_sqlite_persistence.py
 
 from dataclasses import replace
 from pathlib import Path
@@ -16,11 +11,13 @@ from expense_tracker.services import total_amount
 
 
 def print_report(repository: ExpenseRepository) -> None:
+    # Dependemos del contrato del repositorio, no de detalles de SQLite.
     print("Repository total:", total_amount(repository.list_all()))
 
 
 def main() -> None:
     expenses = sample_expenses()
+    # La base temporal permite repetir el ejemplo sin tocar los registros de trabajo.
     with TemporaryDirectory() as directory:
         repository = SQLiteExpenseRepository(Path(directory) / "expenses.db")
         repository.add_many(expenses)
@@ -31,6 +28,7 @@ def main() -> None:
         new_expense = replace(expenses[0], expense_id="new-expense")
         try:
             # El segundo registro tiene un ID existente; el primero tampoco debe persistir.
+            # add_many agrupa ambas inserciones en una sola transacción.
             repository.add_many([new_expense, expenses[1]])
         except StorageError as error:
             print("Transaction rolled back:", error)

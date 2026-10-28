@@ -1,4 +1,4 @@
-# Probamos archivos reales y SQLite temporal, incluyendo la reversión de transacciones.
+# Tema: pruebas de archivos, SQLite y transacciones.
 
 from dataclasses import replace
 from pathlib import Path
@@ -12,6 +12,7 @@ from expense_tracker.serialization import export_csv, import_csv, load_json, sav
 
 
 def test_json_and_csv_round_trip(tmp_path: Path, expenses: list[Expense]) -> None:
+    # tmp_path proporciona una carpeta aislada; comprobamos la recuperación completa de los modelos.
     json_path = tmp_path / "nested" / "expenses.json"
     csv_path = tmp_path / "expenses.csv"
     save_json(expenses, json_path)
@@ -45,12 +46,14 @@ def test_failed_batch_rolls_back_all_rows(tmp_path: Path, expenses: list[Expense
     repository = SQLiteExpenseRepository(tmp_path / "expenses.db")
     repository.add(expenses[0])
     new_expense = replace(expenses[1], expense_id="new-expense")
+    # El ID duplicado del segundo elemento debe impedir que persista también el primero.
     with pytest.raises(StorageError):
         repository.add_many([new_expense, expenses[0]])
     assert repository.list_all() == [expenses[0]]
 
 
 def test_sql_parameters_handle_literal_text(tmp_path: Path, expenses: list[Expense]) -> None:
+    # Texto con apariencia de SQL debe guardarse como dato, sin ejecutarse como instrucciones.
     repository = SQLiteExpenseRepository(tmp_path / "expenses.db")
     description = "Lunch'); DROP TABLE expenses; --"
     repository.add(replace(expenses[0], description=description))

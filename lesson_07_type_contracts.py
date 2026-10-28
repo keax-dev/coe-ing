@@ -1,9 +1,4 @@
 # Tema: anotaciones de tipos, Optional, TypedDict, genéricos y contratos estructurales.
-# Las anotaciones ayudan al analizador estático, pero no validan datos durante la ejecución.
-# Protocol permite aceptar cualquier objeto que implemente los métodos requeridos.
-# TypeVar conserva el tipo de entrada en una función genérica.
-# Ejecuta: .\.venv\Scripts\python.exe lesson_07_type_contracts.py
-# Comprueba el paquete: .\.venv\Scripts\python.exe -m mypy src
 
 from collections.abc import Sequence
 from decimal import Decimal
@@ -17,14 +12,17 @@ Item = TypeVar("Item")
 
 
 def first_or_none(items: Sequence[Item]) -> Item | None:
+    # El tipo de retorno conserva el tipo de los elementos o indica ausencia con None.
     return items[0] if items else None
 
 
 class ExpenseReader(Protocol):
+    # El contrato describe los métodos necesarios, sin imponer una clase base concreta.
     def list_all(self) -> list[Expense]: ...
 
 
 class Summary(TypedDict):
+    # TypedDict describe claves y valores para mypy; no valida el diccionario al ejecutarlo.
     count: int
     total: Decimal
 

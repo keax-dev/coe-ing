@@ -1,10 +1,4 @@
 # Tema: concurrencia de entrada/salida, tareas asíncronas y procesos para cálculo.
-# ThreadPoolExecutor lee archivos independientes; cada tarea devuelve su resultado.
-# asyncio permite esperar varias respuestas HTTP sin bloquear el hilo por cada petición.
-# TaskGroup espera las tareas y cancela las restantes si una falla.
-# Las respuestas HTTP son simuladas; los tiempos de estas demostraciones no son benchmarks.
-# --processes muestra procesos separados para cálculo y su costo de arranque.
-# Ejecuta: .\.venv\Scripts\python.exe lesson_15_concurrency.py
 
 import argparse
 import asyncio
@@ -40,6 +34,7 @@ async def query_multiple_sources() -> None:
     async with httpx.AsyncClient(
         transport=httpx.MockTransport(mock_response), timeout=5.0
     ) as client:
+        # TaskGroup espera todas las tareas y cancela las restantes si una falla.
         async with asyncio.TaskGroup() as group:
             tasks = [
                 group.create_task(fetch_rates_async(client, f"https://rates.example.test/{source}"))
@@ -53,6 +48,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Compare concurrency mechanisms.")
     parser.add_argument("--processes", action="store_true")
     args = parser.parse_args()
+    # Cada hilo lee un archivo independiente y devuelve su resultado al hilo principal.
     with TemporaryDirectory() as directory:
         paths = [Path(directory) / f"batch-{index}.json" for index in range(3)]
         for path, expense in zip(paths, sample_expenses(), strict=False):
@@ -60,8 +56,10 @@ def main() -> None:
         with ThreadPoolExecutor(max_workers=3) as executor:
             print("Independent file totals:", list(executor.map(read_total, paths)))
 
+    # asyncio coordina esperas sin bloquear por cada petición; el transporte usa datos simulados.
     asyncio.run(query_multiple_sources())
     if args.processes:
+        # Los procesos separan trabajo de cálculo, pero añaden arranque y transferencia de datos.
         with ProcessPoolExecutor(max_workers=2) as executor:
             print("Process results:", list(executor.map(calculate_checksum, [10000, 20000])))
 

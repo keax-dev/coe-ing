@@ -1,8 +1,4 @@
 # Tema: excepciones del dominio, encadenamiento, contexto y registros de ejecución.
-# Una excepción específica permite reaccionar sin capturar indiscriminadamente cualquier fallo.
-# contextmanager garantiza una acción de cierre mediante finally.
-# logging registra eventos sin mezclar esa responsabilidad con el cálculo del resultado.
-# Ejecuta: .\.venv\Scripts\python.exe lesson_08_errors_and_contexts.py
 
 import logging
 from collections.abc import Iterator
@@ -16,13 +12,17 @@ logger = logging.getLogger(__name__)
 
 @contextmanager
 def operation_scope(name: str) -> Iterator[None]:
+    # logging permite configurar el destino y el nivel de los mensajes fuera de esta función.
     logger.info("Starting operation: %s", name)
     try:
+        # El cuerpo del with se ejecuta aquí, mientras el contexto está abierto.
         yield
     except ExpenseValidationError:
         logger.warning("Validation failed: %s", name)
+        # Repropagamos el mismo error para que el llamador decida cómo responder.
         raise
     finally:
+        # Este cierre ocurre incluso cuando la validación produce una excepción.
         logger.info("Closing operation: %s", name)
 
 
@@ -35,6 +35,7 @@ def main() -> None:
         except ExpenseValidationError as error:
             print("Handled domain error:", error)
             if error.__cause__ is not None:
+                # El encadenamiento conserva el error original que provocó el fallo del dominio.
                 print("Original error type:", type(error.__cause__).__name__)
 
 

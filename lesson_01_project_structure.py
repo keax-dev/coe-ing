@@ -1,11 +1,4 @@
 # Tema: estructura de un proyecto intermedio, paquetes y dependencias.
-# Asumimos que ya conoces variables, condiciones, bucles y funciones básicas.
-# src contiene el paquete instalable; tests comprueba contratos y casos límite.
-# pyproject.toml declara dependencias, comandos de terminal y herramientas de calidad.
-# Versión de referencia: Python 3.14.7.
-# Instalación: py -3.14 -m venv .venv
-# Después: .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-# Ejecuta: .\.venv\Scripts\python.exe lesson_01_project_structure.py
 
 from importlib.metadata import version
 from pathlib import Path
@@ -16,11 +9,14 @@ from expense_tracker.services import total_amount
 
 
 def main() -> None:
+    # __file__ ubica este archivo; parent obtiene la raíz sin depender de la terminal actual.
     project_root = Path(__file__).resolve().parent
     print("Course version:", __version__)
+    # Consulta los metadatos que pip registró al instalar el proyecto en modo editable.
     print("Installed distribution:", version("coe-ing-expense-tracker"))
     print("Package directory:", project_root / "src" / "expense_tracker")
     print("Test directory:", project_root / "tests")
+    # La lección reutiliza datos y cálculos del paquete en lugar de duplicar sus implementaciones.
     print("Sample total:", total_amount(sample_expenses()))
 
 

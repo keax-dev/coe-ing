@@ -1,5 +1,4 @@
-# El protocolo define el contrato; SQLite lo implementa sin acoplar los servicios a SQL.
-# La conexión se cierra con closing; el bloque with de sqlite confirma o revierte cambios.
+# Tema: repositorios SQLite y transacciones.
 
 import sqlite3
 from collections.abc import Iterable
@@ -13,6 +12,7 @@ from expense_tracker.serialization import expense_from_record, expense_to_record
 
 
 class ExpenseRepository(Protocol):
+    # Los servicios dependen de estos métodos, sin exigir una implementación concreta.
     def add(self, expense: Expense) -> None: ...
 
     def list_all(self) -> list[Expense]: ...
@@ -23,6 +23,7 @@ class SQLiteExpenseRepository:
         self.path = path
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
+            # closing cierra la conexión; el contexto de sqlite confirma o revierte la transacción.
             with closing(sqlite3.connect(path)) as connection, connection:
                 connection.execute(
                     "CREATE TABLE IF NOT EXISTS expenses ("
@@ -36,9 +37,12 @@ class SQLiteExpenseRepository:
         self.add_many([expense])
 
     def add_many(self, expenses: Iterable[Expense]) -> None:
+        # Preparamos todos los registros antes de iniciar la escritura.
         records = [expense_to_record(expense) for expense in expenses]
         try:
             with closing(sqlite3.connect(self.path)) as connection, connection:
+                # Los parámetros nombrados separan los valores del texto de la consulta SQL.
+                # Si una inserción falla, se revierten también las anteriores de este lote.
                 connection.executemany(
                     "INSERT INTO expenses VALUES "
                     "(:expense_id, :description, :amount, :category, :spent_on)",
@@ -50,6 +54,7 @@ class SQLiteExpenseRepository:
     def list_all(self) -> list[Expense]:
         try:
             with closing(sqlite3.connect(self.path)) as connection:
+                # Row permite recuperar las columnas por nombre y reconstruir el modelo validado.
                 connection.row_factory = sqlite3.Row
                 rows = connection.execute(
                     "SELECT * FROM expenses ORDER BY spent_on, expense_id"
@@ -64,6 +69,7 @@ class SQLiteExpenseRepository:
                 cursor = connection.execute(
                     "DELETE FROM expenses WHERE expense_id = ?", (expense_id,)
                 )
+                # rowcount distingue una eliminación real de un ID inexistente.
                 return cursor.rowcount > 0
         except sqlite3.Error as error:
             raise StorageError(f"Cannot delete expense: {error}") from error

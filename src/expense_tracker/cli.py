@@ -1,5 +1,4 @@
-# argparse convierte los comandos de terminal en llamadas a servicios reutilizables.
-# La interfaz captura errores esperados y devuelve un código de salida significativo.
+# Tema: comandos de terminal y coordinación de operaciones.
 
 import argparse
 from datetime import date
@@ -13,6 +12,7 @@ from expense_tracker.services import total_amount, totals_by_category
 
 
 def build_parser() -> argparse.ArgumentParser:
+    # argparse valida opciones y convierte las rutas antes de ejecutar las operaciones.
     parser = argparse.ArgumentParser(description="Track expenses with exact monetary amounts.")
     parser.add_argument("--database", type=Path, default=Path("data/expenses.db"))
     commands = parser.add_subparsers(dest="command", required=True)
@@ -41,6 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Aceptar una lista permite probar los mismos comandos sin depender de sys.argv.
     args = build_parser().parse_args(argv)
     try:
         repository = SQLiteExpenseRepository(args.database)
@@ -56,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
             if not expenses:
                 print("No expenses recorded.")
         elif args.command == "summary":
+            # El presupuesto pertenece al reporte actual; los gastos provienen del repositorio.
             budget = parse_money(args.budget)
             expenses = repository.list_all()
             total = total_amount(expenses)
@@ -72,9 +74,11 @@ def main(argv: list[str] | None = None) -> int:
             save_json(repository.list_all(), args.path)
             print("Exported to:", args.path)
         elif args.command == "import-json":
+            # Primero validamos todo el archivo y luego insertamos el lote en una transacción.
             repository.add_many(load_json(args.path))
             print("Import completed.")
     except (ExpenseTrackerError, OSError, ValueError) as error:
+        # Los fallos esperados se muestran al usuario y producen un código de salida distinto de cero.
         print(f"Error: {error}")
         return 1
     return 0

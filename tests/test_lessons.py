@@ -1,5 +1,4 @@
-# Cada lección debe poder ejecutarse desde terminal con el entorno instalado.
-# La lección 09 solo ejecuta modelos y servicios; no vuelve a invocar esta prueba.
+# Tema: verificación de ejecución de las lecciones.
 
 import subprocess
 import sys
@@ -13,6 +12,8 @@ LESSONS = sorted(ROOT.glob("lesson_*.py"))
 
 @pytest.mark.parametrize("lesson", LESSONS, ids=lambda path: path.name)
 def test_lesson_runs_without_network(lesson: Path) -> None:
+    # Cada archivo se ejecuta como programa independiente con el mismo intérprete de las pruebas.
+    # La lección 09 solo prueba modelos y servicios, evitando recursión sobre esta verificación.
     result = subprocess.run(
         [sys.executable, "-B", str(lesson)], cwd=ROOT, capture_output=True, text=True, timeout=60
     )

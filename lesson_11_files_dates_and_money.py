@@ -1,8 +1,4 @@
 # Tema: rutas, JSON, CSV, fechas y precisión monetaria con Decimal.
-# La serialización guarda los montos como texto y las fechas en formato ISO.
-# JSON y CSV se convierten de nuevo a modelos validados al importarlos.
-# Usamos una carpeta temporal para que la demostración no cambie tus datos.
-# Ejecuta: .\.venv\Scripts\python.exe lesson_11_files_dates_and_money.py
 
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
@@ -17,15 +13,19 @@ from expense_tracker.services import total_amount
 def main() -> None:
     expenses = sample_expenses()
     print("Float arithmetic:", 0.1 + 0.2)
+    # Decimal recibe texto para no heredar la aproximación binaria de un float.
     print("Decimal arithmetic:", Decimal("0.1") + Decimal("0.2"))
+    # Al convertir moneda elegimos explícitamente la precisión y la regla de redondeo.
     converted_amount = (expenses[0].amount * Decimal("0.925")).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
     print("Converted amount with explicit rounding:", converted_amount)
+    # timedelta desplaza fechas sin calcular manualmente los días de cada mes.
     cutoff = date(2026, 10, 1) + timedelta(days=2)
     recent = [expense for expense in expenses if expense.spent_on >= cutoff]
     print("Total from cutoff date:", total_amount(recent))
 
+    # El contexto elimina los archivos al salir; las funciones de carga validan sus registros.
     with TemporaryDirectory() as directory:
         json_path = Path(directory) / "expenses.json"
         csv_path = Path(directory) / "expenses.csv"

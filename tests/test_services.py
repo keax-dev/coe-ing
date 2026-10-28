@@ -1,4 +1,4 @@
-# Verificamos resultados de negocio, casos vacíos y aislamiento entre registros.
+# Tema: pruebas de cálculos y aislamiento de registros.
 
 from decimal import Decimal
 
@@ -16,6 +16,7 @@ def test_known_total_and_empty_total(expenses: list[Expense]) -> None:
 
 
 def test_filter_does_not_mutate_original(expenses: list[Expense]) -> None:
+    # Conservamos una instantánea para comprobar también la ausencia de efectos secundarios.
     original = expenses.copy()
     selected = filter_expenses(expenses, category=Category.FOOD, minimum=Decimal("3.00"))
     assert [expense.description for expense in selected] == ["Lunch"]
@@ -31,6 +32,7 @@ def test_category_totals(expenses: list[Expense]) -> None:
 
 
 def test_ledger_defaults_are_independent(expenses: list[Expense]) -> None:
+    # Agregar un gasto a un registro no debe cambiar otro registro recién creado.
     first = Ledger(Decimal("10.00"))
     second = Ledger(Decimal("10.00"))
     first.add(expenses[0])

@@ -1,5 +1,4 @@
-# Los modelos representan reglas del negocio sin depender de archivos, SQL ni HTTP.
-# Decimal recibe texto para evitar incorporar aproximaciones de float al dinero.
+# Tema: modelos inmutables y validación monetaria.
 
 from dataclasses import dataclass, field
 from datetime import date
@@ -20,17 +19,21 @@ class Category(str, Enum):
 
 
 def parse_money(value: str | Decimal) -> Decimal:
+    # Rechazamos float para no introducir sus aproximaciones en una cantidad monetaria.
     if not isinstance(value, (str, Decimal)):
         raise ExpenseValidationError("Use text or Decimal for monetary amounts.")
     try:
         amount = Decimal(value)
+        # is_finite descarta NaN e infinitos antes de comparar o redondear el valor.
         if not amount.is_finite() or amount <= 0:
             raise ExpenseValidationError("Amount must be finite and positive.")
         rounded_amount = amount.quantize(CENT)
+        # Exigimos centavos exactos; no redondeamos silenciosamente una entrada del usuario.
         if amount != rounded_amount:
             raise ExpenseValidationError("Amount must have at most two decimal places.")
         return rounded_amount
     except InvalidOperation as error:
+        # La excepción del dominio conserva el fallo original como causa.
         raise ExpenseValidationError("Invalid monetary amount.") from error
 
 
@@ -41,6 +44,7 @@ def format_money(amount: Decimal) -> str:
 
 @dataclass(frozen=True, slots=True)
 class Expense:
+    # frozen impide reasignar campos y slots define los atributos permitidos.
     description: str
     amount: Decimal
     category: Category
@@ -56,6 +60,7 @@ class Expense:
             raise ExpenseValidationError("Expense date must be a date value.")
         if not self.expense_id.strip():
             raise ExpenseValidationError("Expense ID cannot be empty.")
+        # Durante la construcción normalizamos los campos antes de exponer el objeto inmutable.
         object.__setattr__(self, "description", self.description.strip())
         object.__setattr__(self, "amount", parse_money(self.amount))
 
@@ -69,6 +74,7 @@ def create_expense(
     category: str = "other",
     spent_on: date | None = None,
 ) -> Expense:
+    # Convertimos texto de la interfaz a tipos del dominio en un único punto de entrada.
     try:
         selected_category = Category(category.strip().lower())
     except ValueError as error:

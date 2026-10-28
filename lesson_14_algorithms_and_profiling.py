@@ -1,9 +1,4 @@
 # Tema: búsqueda, recursividad, complejidad y medición de rendimiento.
-# La búsqueda secuencial cuesta O(n); construir un índice cuesta O(n) y permite
-# consultas promedio O(1). El índice también ocupa memoria adicional O(n).
-# La recursividad necesita un caso base y consume pila según la profundidad del árbol.
-# Medimos construcción y consultas por separado; un índice no siempre compensa para una consulta.
-# Ejecuta: .\.venv\Scripts\python.exe lesson_14_algorithms_and_profiling.py
 
 import cProfile
 import pstats
@@ -16,6 +11,7 @@ from expense_tracker.sample_data import sample_expenses
 
 
 def find_sequential(expenses: list[Expense], expense_id: str) -> Expense | None:
+    # En el peor caso revisamos todos los gastos: tiempo O(n), sin construir un índice.
     for expense in expenses:
         if expense.expense_id == expense_id:
             return expense
@@ -40,8 +36,10 @@ def main() -> None:
     template = sample_expenses()[0]
     expenses = [replace(template, expense_id=f"expense-{index}") for index in range(2000)]
     target_id = expenses[-1].expense_id
+    # Construir el índice cuesta O(n) en tiempo y memoria; sus consultas cuestan O(1) en promedio.
     index_by_id = {expense.expense_id: expense for expense in expenses}
     print("Same result:", find_sequential(expenses, target_id) == index_by_id.get(target_id))
+    # Medimos consultas y construcción por separado: preparar un índice también tiene un costo.
     print(
         "100 sequential queries (seconds):",
         timeit(lambda: find_sequential(expenses, target_id), number=100),
@@ -52,6 +50,7 @@ def main() -> None:
         timeit(lambda: {item.expense_id: item for item in expenses}, number=100),
     )
 
+    # El árbol permite aplicar la misma operación a una categoría o a un grupo de subcategorías.
     tree = BudgetNode(
         "all",
         children=(
@@ -60,6 +59,7 @@ def main() -> None:
         ),
     )
     print("Recursive total:", recursive_total(tree))
+    # cProfile atribuye tiempo a funciones; los tiempos observados no son garantías de rendimiento.
     profiler = cProfile.Profile()
     profiler.runcall(find_sequential, expenses, target_id)
     pstats.Stats(profiler).sort_stats("cumulative").print_stats(5)

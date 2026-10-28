@@ -1,5 +1,4 @@
-# Serializamos dinero como texto para preservar su valor exacto al leer JSON o CSV.
-# Las filas de entrada se validan antes de convertirse en modelos del dominio.
+# Tema: conversión de modelos a JSON y CSV.
 
 import csv
 import json
@@ -14,6 +13,7 @@ FIELDS = ["expense_id", "description", "amount", "category", "spent_on"]
 
 
 def expense_to_record(expense: Expense) -> dict[str, str]:
+    # Texto decimal e ISO permiten recuperar dinero y fechas sin perder su significado.
     return {
         "expense_id": expense.expense_id,
         "description": expense.description,
@@ -24,6 +24,7 @@ def expense_to_record(expense: Expense) -> dict[str, str]:
 
 
 def expense_from_record(record: object) -> Expense:
+    # Validamos la estructura externa antes de acceder a claves o construir el modelo.
     if not isinstance(record, dict) or any(not isinstance(record.get(key), str) for key in FIELDS):
         raise ExpenseValidationError("Each expense must contain all required text fields.")
     try:
@@ -39,6 +40,7 @@ def expense_from_record(record: object) -> Expense:
 
 
 def save_json(expenses: Iterable[Expense], path: Path) -> None:
+    # Creamos las carpetas de destino cuando todavía no existen.
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         json.dumps([expense_to_record(expense) for expense in expenses], indent=2),
@@ -53,11 +55,13 @@ def load_json(path: Path) -> list[Expense]:
         raise ExpenseValidationError("Invalid JSON document.") from error
     if not isinstance(records, list):
         raise ExpenseValidationError("Expected a list of expenses.")
+    # Un JSON sintácticamente válido también debe cumplir el contrato de cada registro.
     return [expense_from_record(record) for record in records]
 
 
 def export_csv(expenses: Iterable[Expense], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    # newline evita que Windows añada saltos extra; with cierra el archivo al salir.
     with path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=FIELDS)
         writer.writeheader()

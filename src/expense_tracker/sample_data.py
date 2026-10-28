@@ -1,4 +1,4 @@
-# Las demostraciones comparten datos reproducibles y no alteran registros del usuario.
+# Tema: datos reproducibles para demostraciones y pruebas.
 
 from datetime import date
 from decimal import Decimal
@@ -7,6 +7,7 @@ from expense_tracker.models import Category, Expense
 
 
 def sample_expenses() -> list[Expense]:
+    # Fechas e IDs fijos hacen reproducibles los ejemplos; cada llamada crea una lista nueva.
     return [
         Expense("Lunch", Decimal("12.50"), Category.FOOD, date(2026, 10, 1), "sample-lunch"),
         Expense("Bus", Decimal("3.00"), Category.TRANSPORT, date(2026, 10, 2), "sample-bus"),

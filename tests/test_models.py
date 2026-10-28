@@ -1,4 +1,4 @@
-# Comprobamos reglas monetarias, normalización y validaciones del modelo.
+# Tema: pruebas de modelos y reglas monetarias.
 
 from dataclasses import FrozenInstanceError, replace
 from datetime import date
@@ -12,6 +12,7 @@ from expense_tracker.models import Category, Expense, create_expense, format_mon
 
 @pytest.mark.parametrize("raw", ["12.50", "12.5", "1.000", Decimal("12.50")])
 def test_money_preserves_exact_cents(raw: str | Decimal) -> None:
+    # pytest ejecuta el mismo contrato para distintas representaciones del mismo tipo de dato.
     amount = parse_money(raw)
     assert amount == Decimal(raw)
     assert amount.as_tuple().exponent == -2
@@ -19,6 +20,7 @@ def test_money_preserves_exact_cents(raw: str | Decimal) -> None:
 
 @pytest.mark.parametrize("raw", ["", "text", "0", "-1", "1.001", "NaN", "Infinity"])
 def test_invalid_money_is_rejected(raw: str) -> None:
+    # La prueba solo pasa si se produce la excepción esperada.
     with pytest.raises(ExpenseValidationError):
         parse_money(raw)
 
@@ -43,6 +45,7 @@ def test_invalid_expense_is_rejected(description: str, category: str) -> None:
 def test_expense_is_immutable(expenses: list[Expense]) -> None:
     with pytest.raises(FrozenInstanceError):
         setattr(expenses[0], "description", "Changed")
+    # Crear una variante no debe modificar el modelo original.
     corrected = replace(expenses[0], description="Team lunch")
     assert expenses[0].description == "Lunch"
     assert corrected.description == "Team lunch"
