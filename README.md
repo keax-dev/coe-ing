@@ -9,6 +9,31 @@ El análisis de esa referencia está en [ARCHITECTURE.md](ARCHITECTURE.md).
 El código y los mensajes de la API están en inglés; los comentarios explicativos
 y esta documentación están en español.
 
+## Organización del código y las pruebas
+
+`src/` es el paquete raíz de la aplicación. Sus capas siguen la arquitectura
+de la referencia Java. `tests/` refleja las mismas rutas para los componentes
+que se prueban:
+
+```text
+src/                                      tests/
+  domain/model/institution.py               domain/model/test_institution.py
+  application/service/                     application/service/
+    institution_service_impl.py               test_institution_service_impl.py
+  infrastructure/config/settings.py        infrastructure/config/test_settings.py
+  infrastructure/input/adapter/rest/       infrastructure/input/adapter/rest/
+    institution_controller.py                 test_institution_controller.py
+    exception_handlers.py                     test_exception_handlers.py
+  infrastructure/output/adapter/repository/ infrastructure/output/adapter/repository/
+    institution_persistence_adapter.py        test_institution_persistence_adapter.py
+  main.py                                  architecture/test_architecture.py
+                                           conftest.py
+```
+
+Las verificaciones que afectan a todas las capas están en `tests/architecture/`.
+Las fixtures compartidas permanecen en `tests/conftest.py`. No hace falta crear
+una prueba vacía por cada `__init__.py` o interfaz.
+
 ## Preparar el entorno
 
 Desde la raíz del repositorio:
@@ -46,7 +71,7 @@ pero la convierte a una URL `postgresql+psycopg` para Python. No utiliza el driv
 ## Levantar la API
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn institution.main:app --reload
+.\.venv\Scripts\python.exe -m uvicorn src.main:app --reload
 ```
 
 - Documentación interactiva: <http://127.0.0.1:8000/docs>
@@ -54,6 +79,7 @@ pero la convierte a una URL `postgresql+psycopg` para Python. No utiliza el driv
 - Documentación alternativa: <http://127.0.0.1:8000/redoc>
 
 Mantén abierta la terminal mientras usas la API. Detén el servidor con `Ctrl+C`.
+Ejecuta el comando desde la raíz del repositorio para que Python encuentre `src`.
 La documentación puede abrirse sin conexión a PostgreSQL; las operaciones CRUD sí
 requieren que la base de datos esté disponible.
 

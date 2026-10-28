@@ -26,8 +26,11 @@ Los clientes externos de la referencia no se reproducen porque este CRUD no los 
 
 ## Correspondencia en Python
 
+El paquete raíz se llama `src`; la entidad y los nombres de negocio conservan
+`Institution`. El punto de arranque es `src.main:app`.
+
 ```text
-institution/
+src/
     main.py
     domain/
         model/institution.py
@@ -84,6 +87,13 @@ y tipos estándar de Python.
 - Los mappers REST y de persistencia son independientes y convierten explícitamente sus modelos.
 - La configuración de infraestructura es el punto que conoce las implementaciones y las ensambla.
 - Las pruebas de arquitectura comprueban estas fronteras y la ausencia de ciclos de importación.
+
+Las pruebas de componentes reflejan sus rutas bajo `tests/domain`,
+`tests/application` y `tests/infrastructure`. Por ejemplo,
+`src/application/service/institution_service_impl.py` se comprueba en
+`tests/application/service/test_institution_service_impl.py`. Las fixtures
+comunes están en `tests/conftest.py` y las reglas transversales en
+`tests/architecture/test_architecture.py`.
 
 ## Equivalencia con la entidad proporcionada
 

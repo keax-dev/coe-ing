@@ -11,9 +11,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.schema import CreateSchema, DropSchema
 
-from institution.infrastructure.config.settings import Settings
-from institution.infrastructure.output.adapter.repository.entity.institution_entity import Base
-from institution.main import create_app
+from src.infrastructure.config.settings import Settings
+from src.infrastructure.output.adapter.repository.entity.institution_entity import Base
+from src.main import create_app
 
 
 @pytest.fixture(params=["sqlite", "postgresql"])
