@@ -11,11 +11,14 @@ raíz de esta rama, sin una carpeta adicional que las contenga.
 
 ## Instalación en Windows
 
-Necesitas Python 3.11 o superior e internet para la instalación inicial.
+El proyecto está configurado y verificado con **Python 3.14.7**. Necesitas internet
+para la instalación inicial. El archivo `.python-version` indica la versión de
+referencia y `pyproject.toml` requiere Python 3.14 desde el parche 3.14.7.
 Desde la raíz del repositorio, ejecuta:
 
 ```powershell
-py -m venv .venv
+py -3.14 --version
+py -3.14 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe lesson_01_project_structure.py
 ```
@@ -25,7 +28,12 @@ Puedes modificar el paquete sin reinstalarlo. Si cambias las dependencias o los
 comandos de `pyproject.toml`, vuelve a ejecutar la instalación. No necesitas activar
 el entorno: estos comandos usan su intérprete directamente.
 
-En Linux o macOS crea el entorno con `python3 -m venv .venv` y utiliza
+Comprueba que el primer comando muestre `Python 3.14.7`. Si ya tienes un entorno
+virtual, verifica también su versión con `.\.venv\Scripts\python.exe --version`.
+Ruff y mypy están configurados para analizar código de Python 3.14.
+
+En Linux o macOS usa Python 3.14.7, crea el entorno con
+`python3.14 -m venv .venv` y utiliza
 `.venv/bin/python` en lugar de `.\.venv\Scripts\python.exe`.
 
 ## Orden de estudio
@@ -118,10 +126,9 @@ Las herramientas de desarrollo se instalan con el extra `[dev]`.
 
 ## Aplicación de terminal
 
-Los montos ahora se ingresan en dólares como texto decimal: `12.50` representa
-doce dólares con cincuenta centavos. Esta versión usa `Decimal`, no los centavos
-enteros de las lecciones básicas anteriores. Sus archivos JSON necesitan
-adaptarse al nuevo modelo antes de importarse.
+Los montos se ingresan en dólares como texto decimal: `12.50` representa
+doce dólares con cincuenta centavos. El modelo usa `Decimal` para preservar
+los valores monetarios exactos.
 
 ```powershell
 .\.venv\Scripts\python.exe -m expense_tracker add "Team lunch" 12.50 --category food --date 2026-10-01
@@ -178,9 +185,6 @@ que las pruebas de ejecución se invoquen a sí mismas.
 3. Cambia los datos o una regla y observa qué resultados y pruebas se ven afectados.
 4. Explica las decisiones: mutabilidad, responsabilidades, contratos y manejo de fallos.
 5. Usa los comandos de la aplicación para comprobar cómo se integran los conceptos.
-
-Las lecciones básicas anteriores se conservan en el historial de Git. Esta rama
-presenta ahora la secuencia intermedia, con los archivos de lecciones en la raíz.
 
 ## Documentación de referencia
 

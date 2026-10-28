@@ -2,7 +2,8 @@
 # Asumimos que ya conoces variables, condiciones, bucles y funciones básicas.
 # src contiene el paquete instalable; tests comprueba contratos y casos límite.
 # pyproject.toml declara dependencias, comandos de terminal y herramientas de calidad.
-# Instalación: py -m venv .venv
+# Versión de referencia: Python 3.14.7.
+# Instalación: py -3.14 -m venv .venv
 # Después: .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 # Ejecuta: .\.venv\Scripts\python.exe lesson_01_project_structure.py
 
