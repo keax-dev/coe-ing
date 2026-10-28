@@ -11,28 +11,38 @@ y esta documentación están en español.
 
 ## Organización del código y las pruebas
 
-`src/` es el paquete raíz de la aplicación. Sus capas siguen la arquitectura
-de la referencia Java. `tests/` refleja las mismas rutas para los componentes
-que se prueban:
+`src/` es el paquete raíz de la aplicación. La funcionalidad de instituciones
+se agrupa en `src/institution/`, con sus propias capas hexagonales. Sus pruebas
+reflejan las mismas rutas bajo `tests/institution/`:
 
 ```text
-src/                                      tests/
-  domain/model/institution.py               domain/model/test_institution.py
-  application/service/                     application/service/
-    institution_service_impl.py               test_institution_service_impl.py
-  infrastructure/config/settings.py        infrastructure/config/test_settings.py
-  infrastructure/input/adapter/rest/       infrastructure/input/adapter/rest/
-    institution_controller.py                 test_institution_controller.py
-    exception_handlers.py                     test_exception_handlers.py
-  infrastructure/output/adapter/repository/ infrastructure/output/adapter/repository/
-    institution_persistence_adapter.py        test_institution_persistence_adapter.py
-  main.py                                  architecture/test_architecture.py
-                                           conftest.py
+src/
+  main.py
+  institution/
+    domain/model/institution.py
+    application/service/institution_service_impl.py
+    application/port/input/institution_service.py
+    application/port/output/institution_persistence_port.py
+    infrastructure/config/settings.py
+    infrastructure/input/adapter/rest/institution_controller.py
+    infrastructure/output/adapter/repository/institution_persistence_adapter.py
+
+tests/
+  conftest.py
+  architecture/test_architecture.py
+  institution/
+    domain/model/test_institution.py
+    application/service/test_institution_service_impl.py
+    infrastructure/config/test_settings.py
+    infrastructure/input/adapter/rest/test_institution_controller.py
+    infrastructure/input/adapter/rest/test_exception_handlers.py
+    infrastructure/output/adapter/repository/test_institution_persistence_adapter.py
 ```
 
 Las verificaciones que afectan a todas las capas están en `tests/architecture/`.
 Las fixtures compartidas permanecen en `tests/conftest.py`. No hace falta crear
 una prueba vacía por cada `__init__.py` o interfaz.
+`src/main.py` mantiene el arranque general y registra los componentes de la funcionalidad.
 
 ## Preparar el entorno
 

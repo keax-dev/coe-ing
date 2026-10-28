@@ -11,8 +11,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.schema import CreateSchema, DropSchema
 
-from src.infrastructure.config.settings import Settings
-from src.infrastructure.output.adapter.repository.entity.institution_entity import Base
+from src.institution.infrastructure.config.settings import Settings
+from src.institution.infrastructure.output.adapter.repository.entity.institution_entity import Base
 from src.main import create_app
 
 

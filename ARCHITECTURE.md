@@ -26,34 +26,36 @@ Los clientes externos de la referencia no se reproducen porque este CRUD no los 
 
 ## Correspondencia en Python
 
-El paquete raíz se llama `src`; la entidad y los nombres de negocio conservan
-`Institution`. El punto de arranque es `src.main:app`.
+El paquete raíz se llama `src`. Cada funcionalidad agrupa su propia arquitectura
+hexagonal: instituciones está en `src/institution`. El punto de arranque general
+es `src.main:app` y los modelos conservan el nombre de negocio `Institution`.
 
 ```text
 src/
     main.py
-    domain/
-        model/institution.py
-        exception/institution_errors.py
-    application/
-        port/input/institution_service.py
-        port/output/institution_persistence_port.py
-        service/institution_service_impl.py
-    infrastructure/
-        config/
-            settings.py
-            database_configuration.py
-            application_configuration.py
-        input/adapter/rest/
-            institution_controller.py
-            exception_handlers.py
-            dto/institution_dto.py
-            mapper/institution_rest_mapper.py
-        output/adapter/repository/
-            institution_persistence_adapter.py
-            entity/institution_entity.py
-            repository/institution_repository.py
-            mapper/institution_persistence_mapper.py
+    institution/
+        domain/
+            model/institution.py
+            exception/institution_errors.py
+        application/
+            port/input/institution_service.py
+            port/output/institution_persistence_port.py
+            service/institution_service_impl.py
+        infrastructure/
+            config/
+                settings.py
+                database_configuration.py
+                application_configuration.py
+            input/adapter/rest/
+                institution_controller.py
+                exception_handlers.py
+                dto/institution_dto.py
+                mapper/institution_rest_mapper.py
+            output/adapter/repository/
+                institution_persistence_adapter.py
+                entity/institution_entity.py
+                repository/institution_repository.py
+                mapper/institution_persistence_mapper.py
 ```
 
 `Protocol` expresa los contratos de aplicación. Los servicios implementan el puerto
@@ -88,10 +90,10 @@ y tipos estándar de Python.
 - La configuración de infraestructura es el punto que conoce las implementaciones y las ensambla.
 - Las pruebas de arquitectura comprueban estas fronteras y la ausencia de ciclos de importación.
 
-Las pruebas de componentes reflejan sus rutas bajo `tests/domain`,
-`tests/application` y `tests/infrastructure`. Por ejemplo,
-`src/application/service/institution_service_impl.py` se comprueba en
-`tests/application/service/test_institution_service_impl.py`. Las fixtures
+Las pruebas de componentes reflejan sus rutas bajo `tests/institution/domain`,
+`tests/institution/application` y `tests/institution/infrastructure`. Por ejemplo,
+`src/institution/application/service/institution_service_impl.py` se comprueba en
+`tests/institution/application/service/test_institution_service_impl.py`. Las fixtures
 comunes están en `tests/conftest.py` y las reglas transversales en
 `tests/architecture/test_architecture.py`.
 

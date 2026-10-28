@@ -7,15 +7,15 @@ from fastapi import FastAPI
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.infrastructure.config.application_configuration import (
+from src.institution.infrastructure.config.application_configuration import (
     configure_institution_service,
 )
-from src.infrastructure.config.database_configuration import configure_database
-from src.infrastructure.config.settings import Settings
-from src.infrastructure.input.adapter.rest.exception_handlers import (
+from src.institution.infrastructure.config.database_configuration import configure_database
+from src.institution.infrastructure.config.settings import Settings
+from src.institution.infrastructure.input.adapter.rest.exception_handlers import (
     register_exception_handlers,
 )
-from src.infrastructure.input.adapter.rest.institution_controller import router
+from src.institution.infrastructure.input.adapter.rest.institution_controller import router
 
 
 def create_app(session_factory: sessionmaker[Session] | None = None) -> FastAPI:

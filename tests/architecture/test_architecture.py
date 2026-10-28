@@ -4,6 +4,7 @@ import ast
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] / "src"
+FEATURE_ROOT = ROOT / "institution"
 
 
 def imports(path: Path) -> list[str]:
@@ -19,27 +20,30 @@ def imports(path: Path) -> list[str]:
 
 def test_domain_and_application_do_not_depend_on_frameworks() -> None:
     for layer in ["domain", "application"]:
-        for path in (ROOT / layer).rglob("*.py"):
+        assert (FEATURE_ROOT / layer).is_dir()
+        for path in (FEATURE_ROOT / layer).rglob("*.py"):
             for module in imports(path):
                 assert not module.startswith(
-                    ("fastapi", "pydantic", "sqlalchemy", "src.infrastructure")
+                    ("fastapi", "pydantic", "sqlalchemy", "src.institution.infrastructure")
                 ), path
                 if layer == "domain":
-                    assert not module.startswith("src.application"), path
+                    assert not module.startswith("src.institution.application"), path
 
 
 def test_ports_only_use_domain_models_and_standard_types() -> None:
-    for path in (ROOT / "application" / "port").rglob("*.py"):
-        assert all(module.startswith(("typing", "src.domain")) for module in imports(path)), path
+    for path in (FEATURE_ROOT / "application" / "port").rglob("*.py"):
+        assert all(
+            module.startswith(("typing", "src.institution.domain")) for module in imports(path)
+        ), path
 
 
 def test_adapters_do_not_depend_on_each_other() -> None:
     for direction, opposite in [("input", "output"), ("output", "input")]:
-        for path in (ROOT / "infrastructure" / direction).rglob("*.py"):
+        for path in (FEATURE_ROOT / "infrastructure" / direction).rglob("*.py"):
             for module in imports(path):
-                assert not module.startswith(f"src.infrastructure.{opposite}"), path
-                if module.startswith("src.application"):
-                    assert module.startswith(f"src.application.port.{direction}"), path
+                assert not module.startswith(f"src.institution.infrastructure.{opposite}"), path
+                if module.startswith("src.institution.application"):
+                    assert module.startswith(f"src.institution.application.port.{direction}"), path
 
 
 def test_no_import_cycles() -> None:
@@ -71,7 +75,9 @@ def test_no_import_cycles() -> None:
 def test_component_tests_follow_source_structure() -> None:
     tests_root = Path(__file__).resolve().parents[1]
     for layer in ["domain", "application", "infrastructure"]:
-        for path in (tests_root / layer).rglob("test_*.py"):
+        layer_tests = tests_root / "institution" / layer
+        assert layer_tests.is_dir()
+        for path in layer_tests.rglob("test_*.py"):
             relative = path.relative_to(tests_root)
             source_file = ROOT / relative.parent / path.name.removeprefix("test_")
             assert source_file.is_file(), f"Test has no matching source component: {path}"
