@@ -1,63 +1,43 @@
-# Fundamentos de Programación
+# Patrones de Diseño en Python
 
-Ejemplos prácticos independientes para **Python 3.14.7**, organizados únicamente
-en estos seis temas:
+Tres ejemplos sencillos e independientes, compatibles con **Python 3.14.7**.
+Cada archivo contiene su propio código y muestra sus resultados al ejecutarse.
+No necesitas instalar bibliotecas ni levantar un servidor.
 
-| Tema | Archivo | Contenido |
+| Patrón | Archivo | Idea del ejemplo |
 | --- | --- | --- |
-| Funciones | `lesson_01_functions.py` | Parámetros, retornos, argumentos nombrados, `*args`, `**kwargs`, funciones como argumentos y efectos secundarios. |
-| Arreglos y colecciones | `lesson_02_arrays_and_collections.py` | Arreglos numéricos, listas, tuplas, conjuntos, diccionarios, copias, comprensiones y matrices. |
-| Programación Orientada a Objetos (POO) | `lesson_03_object_oriented_programming.py` | Clases, objetos, encapsulación, composición, herencia, polimorfismo e inmutabilidad. |
-| Estructuras de datos | `lesson_04_data_structures.py` | Pilas, colas, colas de prioridad y representación y recorrido de grafos. |
-| Manejo de errores y depuración | `lesson_05_errors_and_debugging.py` | Excepciones, validación, encadenamiento, trazas de errores, errores lógicos e inspección paso a paso. |
-| Buenas prácticas de desarrollo | `lesson_06_development_practices.py` | Nombres descriptivos, constantes, responsabilidades, funciones puras, tipos, separación de cálculo y salida, y pruebas. |
+| Factory | `pattern_01_factory.py` | Una fábrica simple crea una notificación de correo o SMS según el canal recibido. |
+| Strategy | `pattern_02_strategy.py` | Un calculador cambia entre envío estándar y exprés intercambiando el algoritmo. |
+| Observer | `pattern_03_observer.py` | Un publicador avisa a sus suscriptores y permite cancelar suscripciones. |
 
-Cada archivo contiene todo lo necesario para ejecutar sus ejemplos y no importa
-código de otras lecciones. Al inicio hay una sola línea con el tema; las
-explicaciones están junto al código y en español. Los identificadores y mensajes
-del programa están en inglés.
+Factory se muestra mediante la variante de fábrica simple: una función centraliza
+la selección y construcción del objeto. Los envíos y notificaciones son simulados;
+los ejemplos únicamente imprimen mensajes. Las tarifas son valores ilustrativos.
 
 ## Ejecución
 
-Desde la raíz del repositorio, ejecuta cualquiera de los archivos:
+Desde la raíz del repositorio:
 
 ```powershell
 py -3.14 --version
-py -3.14 lesson_01_functions.py
-py -3.14 lesson_02_arrays_and_collections.py
+py -3.14 pattern_01_factory.py
+py -3.14 pattern_02_strategy.py
+py -3.14 pattern_03_observer.py
 ```
 
-Comprueba que la versión sea `Python 3.14.7`. Si prefieres usar el entorno virtual
-existente, puedes ejecutar:
+Comprueba que la versión sea `Python 3.14.7`. También puedes usar el entorno
+virtual existente:
 
 ```powershell
-.\.venv\Scripts\python.exe lesson_03_object_oriented_programming.py
+.\.venv\Scripts\python.exe pattern_01_factory.py
 ```
 
-**No necesitas instalar dependencias:** todos los ejemplos usan la biblioteca
-estándar de Python. No hay aplicación, servidor ni base de datos que levantar.
+## Qué observar
 
-## Depuración y comprobaciones
+- **Factory:** el consumidor pide un canal y recibe un objeto con el método `send`.
+- **Strategy:** el mismo calculador devuelve `6` con envío estándar y `12` con exprés para un peso de `3`.
+- **Observer:** Alex y Sam reciben la primera noticia; solo Sam recibe la segunda.
 
-El archivo de errores muestra fallos controlados y un cálculo incorrecto
-intencional, seguido de la solución. Para inspeccionar el cálculo paso a paso:
-
-```powershell
-py -3.14 lesson_05_errors_and_debugging.py --debug
-```
-
-En el depurador usa `n` para avanzar, `p total` para inspeccionar el acumulador
-y `c` para continuar.
-
-Las pruebas de ejemplo están dentro del tema de buenas prácticas. Ejecútalas con:
-
-```powershell
-py -3.14 lesson_06_development_practices.py --check
-```
-
-## Forma de estudio
-
-1. Abre el archivo y lee sus comentarios.
-2. Predice el resultado y ejecuta el ejemplo.
-3. Modifica un dato o una condición y compara la nueva salida.
-4. Explica el comportamiento sin depender de otra lección.
+Al inicio de cada archivo hay una sola línea con el tema. Los comentarios
+explicativos están junto al código y en español; los identificadores, nombres
+de archivos y mensajes están en inglés.
