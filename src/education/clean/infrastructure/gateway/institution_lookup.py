@@ -1,4 +1,4 @@
-# Tema: consulta y bloqueo de instituciones usando la sesión de la unidad de trabajo.
+# Tema: consulta de instituciones dentro de la transacción de la unidad de trabajo.
 
 from sqlalchemy import BigInteger, Boolean, Column, MetaData, Table, select
 from sqlalchemy.orm import Session
@@ -18,11 +18,9 @@ class SQLAlchemyInstitutionLookup(InstitutionLookup):
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def exists_active(self, institution_id: int, *, lock: bool = False) -> bool:
+    def exists_active(self, institution_id: int) -> bool:
         query = select(institution_table.c.institution_id).where(
             institution_table.c.institution_id == institution_id,
             institution_table.c.institution_deleted.is_(False),
         )
-        if lock:
-            query = query.with_for_update()
         return self._session.scalar(query) is not None

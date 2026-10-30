@@ -45,7 +45,7 @@ def test_creation_requires_active_institution(work) -> None:
     work.institutions.exists_active.return_value = False
     with pytest.raises(ActiveInstitutionNotFound):
         EducationService(lambda: work).create(sample())
-    work.institutions.exists_active.assert_called_once_with(1, lock=True)
+    work.institutions.exists_active.assert_called_once_with(1)
     work.educations.create.assert_not_called()
     work.commit.assert_not_called()
 

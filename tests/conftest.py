@@ -1,55 +1,27 @@
-# Tema: bases aisladas para probar el mismo adaptador con SQLite y PostgreSQL.
+# Tema: bases SQLite temporales para probar ambos CRUD sin tocar los datos locales.
 
-import os
 from collections.abc import Iterator
 from pathlib import Path
-from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.schema import CreateSchema, DropSchema
 
 from src.main import create_app
+from src.shared.config.database_configuration import configure_database
 from src.shared.config.settings import Settings
 from src.shared.persistence.base import Base
 
 
-@pytest.fixture(params=["sqlite", "postgresql"])
-def session_factory(
-    request: pytest.FixtureRequest, tmp_path: Path
-) -> Iterator[sessionmaker[Session]]:
-    if request.param == "sqlite":
-        engine = create_engine(
-            f"sqlite+pysqlite:///{tmp_path / 'test.db'}", connect_args={"check_same_thread": False}
-        )
-
-        @event.listens_for(engine, "connect")
-        def enforce_foreign_keys(connection, _record):
-            connection.execute("PRAGMA foreign_keys=ON")
-
-        Base.metadata.create_all(engine)
-        try:
-            yield sessionmaker(bind=engine, expire_on_commit=False)
-        finally:
-            engine.dispose()
-        return
-
-    if os.getenv("RUN_POSTGRES_TESTS") != "1":
-        pytest.skip("Set RUN_POSTGRES_TESTS=1 to use an isolated PostgreSQL schema.")
-    engine = create_engine(Settings().sqlalchemy_url, connect_args={"connect_timeout": 5})
-    schema = f"test_backend_{uuid4().hex}"
-    with engine.begin() as connection:
-        connection.execute(CreateSchema(schema))
-    isolated_engine = engine.execution_options(schema_translate_map={None: schema})
+@pytest.fixture
+def session_factory(tmp_path: Path) -> Iterator[sessionmaker[Session]]:
+    engine, factory = configure_database(
+        Settings(_env_file=None, DB_URL=f"sqlite:///{tmp_path / 'test.db'}")
+    )
     try:
-        # El esquema generado es exclusivo de la prueba; no se escriben las tablas públicas.
-        Base.metadata.create_all(isolated_engine)
-        yield sessionmaker(bind=isolated_engine, expire_on_commit=False)
+        Base.metadata.create_all(engine)
+        yield factory
     finally:
-        with engine.begin() as connection:
-            connection.execute(DropSchema(schema, cascade=True))
         engine.dispose()
 
 

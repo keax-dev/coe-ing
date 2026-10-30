@@ -52,7 +52,7 @@ convenciones en `HUS/AGENTS.md`. El proyecto Java no se modificó.
 - `infrastructure/config`: ensamblado por constructor.
 
 ```text
-HTTP -> Puerto de entrada -> Servicio -> Puerto de salida -> Adaptador -> PostgreSQL
+HTTP -> Puerto de entrada -> Servicio -> Puerto de salida -> Adaptador -> SQLite
 ```
 
 ## Educación: Clean Architecture
@@ -78,7 +78,7 @@ HTTP
   -> application/port/UnitOfWork
   -> infrastructure/unit_of_work/SQLAlchemyUnitOfWork
   -> infrastructure/repository + infrastructure/gateway
-  -> PostgreSQL
+  -> SQLite
 
 Resultado: Education -> EducationRestMapper -> EducationResponse -> HTTP JSON
 ```
@@ -97,8 +97,9 @@ crea una instancia, que abre su sesión y proporciona:
 - `commit()` y `rollback()`: control explícito de la transacción.
 
 Al crear o actualizar, el servicio valida la institución mediante la misma unidad
-de trabajo que escribirá educación. El gateway puede bloquear la fila con
-`SELECT FOR UPDATE`; el bloqueo se mantiene hasta confirmar o revertir.
+de trabajo que escribirá educación. La configuración SQLite inicia las transacciones
+con `BEGIN IMMEDIATE`: reserva la escritura antes de validar y evita que otra
+operación modifique la institución entre la comprobación y el guardado.
 
 Los repositorios realizan consultas, actualizaciones y `flush`, pero nunca
 confirman ni abren transacciones independientes. El servicio hace commit cuando
@@ -140,7 +141,12 @@ tests/education/clean/infrastructure/unit_of_work/test_sqlalchemy_unit_of_work.p
 Las fixtures comunes permanecen en `tests/conftest.py`. Las reglas transversales
 están en `tests/architecture/`. Se comprueban la dirección de dependencias, la
 ausencia de ciclos, las rutas reflejadas y que los repositorios no hagan commit.
-Las pruebas de integración usan SQLite temporal y PostgreSQL en esquemas aislados.
+Las pruebas de integración usan archivos SQLite temporales, sin servicios externos.
+
+La configuración compartida obtiene la ruta del archivo mediante `DB_URL`.
+SQLite guarda los datos de forma persistente, activa las claves foráneas y no
+requiere credenciales ni servidor. `data/` está excluido de Git y las pruebas
+no modifican el archivo local de trabajo.
 
 `migrations/env.py` registra los modelos de ambas funcionalidades y utiliza las
 mismas variables de entorno. La revisión `0001` crea el esquema mínimo para bases

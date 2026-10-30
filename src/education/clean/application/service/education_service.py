@@ -16,7 +16,7 @@ class EducationService:
     @staticmethod
     def _require_institution(work: UnitOfWork, institution_id: int) -> None:
         # La búsqueda y la escritura comparten sesión; el bloqueo dura hasta el commit.
-        if not work.institutions.exists_active(institution_id, lock=True):
+        if not work.institutions.exists_active(institution_id):
             raise ActiveInstitutionNotFound("Institution was not found or is deleted.")
 
     def create(self, education: Education) -> Education:

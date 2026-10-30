@@ -1,12 +1,13 @@
 # Tema: migraciones manuales con configuración compartida y metadatos de ambas funcionalidades.
 
 from alembic import context
-from sqlalchemy import Connection, create_engine
+from sqlalchemy import Connection
 
 from src.education.clean.infrastructure.model.education_model import EducationModel
 from src.institution.hexagonal.infrastructure.output.adapter.repository.entity.institution_entity import (
     InstitutionEntity,
 )
+from src.shared.config.database_configuration import configure_database
 from src.shared.config.settings import Settings
 
 config = context.config
@@ -35,7 +36,6 @@ def run_with_connection(connection: Connection) -> None:
         target_metadata=target_metadata,
         include_object=include_object,
         compare_type=True,
-        version_table_schema=config.attributes.get("version_table_schema"),
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -47,7 +47,7 @@ def run_online() -> None:
         # Las pruebas inyectan una conexión aislada, sin consultar la base de trabajo.
         run_with_connection(connection)
         return
-    engine = create_engine(Settings().sqlalchemy_url, pool_pre_ping=True)
+    engine, _session_factory = configure_database(Settings())
     try:
         with engine.connect() as connection:
             run_with_connection(connection)

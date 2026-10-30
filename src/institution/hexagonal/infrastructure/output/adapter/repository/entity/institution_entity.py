@@ -9,7 +9,7 @@ from src.shared.persistence.base import Base
 class InstitutionEntity(Base):
     __tablename__ = "institution"
 
-    # PostgreSQL conserva BIGINT; la variante permite probar el adaptador con SQLite aislado.
+    # SQLite requiere INTEGER para asignar automáticamente los IDs de la clave primaria.
     institution_id: Mapped[int] = mapped_column(
         BigInteger().with_variant(Integer, "sqlite"), Identity(), primary_key=True
     )

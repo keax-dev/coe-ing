@@ -1,4 +1,4 @@
-# Tema: búsqueda y bloqueo institucional dentro de la sesión del caso de uso.
+# Tema: búsqueda institucional dentro de la transacción del caso de uso.
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
@@ -17,13 +17,11 @@ def test_active_missing_and_deleted_institutions(
     parent = client.post("/api/v1/institutions", json={"institutionName": "University"}).json()
     with session_factory.begin() as session:
         lookup = SQLAlchemyInstitutionLookup(session)
-        assert lookup.exists_active(parent["institutionId"], lock=True)
+        assert lookup.exists_active(parent["institutionId"])
         assert not lookup.exists_active(999999)
     client.delete(f"/api/v1/institutions/{parent['institutionId']}?version=0")
     with session_factory.begin() as session:
-        assert not SQLAlchemyInstitutionLookup(session).exists_active(
-            parent["institutionId"], lock=True
-        )
+        assert not SQLAlchemyInstitutionLookup(session).exists_active(parent["institutionId"])
 
 
 def test_lookup_sees_uncommitted_changes_in_same_session(
