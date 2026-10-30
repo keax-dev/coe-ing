@@ -1,10 +1,17 @@
-# Tema: referencias, copias, desempaquetado y transformaciones de colecciones.
+# Tema: arreglos y colecciones, mutabilidad, copias y comprensiones.
 
-from collections import Counter, defaultdict
+from array import array
 from copy import deepcopy
 
 
 def main() -> None:
+    # array guarda valores numéricos de un mismo tipo; las listas permiten elementos heterogéneos.
+    numeric_scores = array("i", [85, 92, 78])
+    numeric_scores.append(90)
+    print("Numeric array:", numeric_scores.tolist())
+    # Una tupla conserva la forma de un registro y no permite reasignar sus posiciones.
+    student = ("Alex", 85)
+    print("Tuple record:", student)
     users = [{"name": "Alex", "tags": ["python"]}]
     alias = users
     shallow_copy = users.copy()
@@ -30,13 +37,10 @@ def main() -> None:
     print("Unique scores:", sorted(unique_scores))
     print("Score lookup:", scores_by_name["Sam"])
 
-    # Counter cuenta repeticiones y defaultdict crea una lista por cada clave nueva.
-    counts = Counter(score for _, score in scores)
-    grouped: dict[str, list[str]] = defaultdict(list)
-    for name, score in scores:
-        grouped["passed" if score >= 80 else "review"].append(name)
-    print("Score frequencies:", dict(counts))
-    print("Grouped students:", dict(grouped))
+    # Cada fila tiene su propia lista; repetir la misma fila con * compartiría sus referencias.
+    matrix = [[0 for _ in range(3)] for _ in range(2)]
+    matrix[0][1] = 7
+    print("Independent matrix rows:", matrix)
 
 
 if __name__ == "__main__":

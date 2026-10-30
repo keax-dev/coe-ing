@@ -1,4 +1,4 @@
-# Tema: dataclasses, composición, encapsulación, polimorfismo y métodos especiales.
+# Tema: programación orientada a objetos, encapsulación, composición y polimorfismo.
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterator

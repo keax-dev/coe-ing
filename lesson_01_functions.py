@@ -1,6 +1,6 @@
-# Tema: contratos de funciones, argumentos variables y efectos secundarios.
+# Tema: funciones, parámetros, retornos y funciones como argumentos.
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 
 
 def average_score(scores: Iterable[int], *, minimum: int = 0) -> float | None:
@@ -29,6 +29,13 @@ def append_tag(tag: str, tags: list[str]) -> None:
     tags.append(tag)
 
 
+def transform_scores(
+    scores: Iterable[int], transform: Callable[[int], int]
+) -> list[int]:
+    # Recibir una función permite reutilizar el recorrido con diferentes transformaciones.
+    return [transform(score) for score in scores]
+
+
 def main() -> None:
     print("Selected average:", average_score([60, 85, 95], minimum=80))
     print("Empty average:", average_score([]))
@@ -40,6 +47,11 @@ def main() -> None:
     append_tag("testing", original)
     print("Original after in-place change:", original)
     print("Independent default lists:", with_tag("first") is not with_tag("second"))
+    # Una lambda expresa una función breve que devuelve una sola expresión.
+    print(
+        "Adjusted scores:",
+        transform_scores([70, 80, 95], lambda score: min(score + 5, 100)),
+    )
 
 
 if __name__ == "__main__":
